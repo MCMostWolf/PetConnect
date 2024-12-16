@@ -1,0 +1,20 @@
+{
+  "itemGroup.pet_connect_tab": "Contract Ring Tab",
+  "key.petconnect.toggle": "Toggle Contract Ring Form",
+  "item.petconnect.pet_connect": "Contract Ring (Contain)",
+  "item.petconnect.pet_connect1": "Contract Ring (Release)",
+  "item.petconnect.pet_connect.desc": "Containment Successful",
+  "item.petconnect.pet_connect.desc1": "Containment Failed, Unknown Error",
+  "item.petconnect.pet_connect.desc2": "Pet Space Not Loaded or Access Denied",
+  "item.petconnect.pet_connect.desc3": "Containment Successful, but Containment Limit Reached",
+  "item.petconnect.pet_connect.desc4": "Containment Pet Limit Reached",
+  "item.petconnect.pet_connect.desc5": "No Pets to Contain Nearby",
+  "item.petconnect.pet_connect.desc6": "You've Chosen Well",
+  "item.petconnect.pet_connect.desc7": "Pet Space Currently Contains No Pets",
+  "item.petconnect.pet_connect.desc8": "Switch to Contain Pets",
+  "item.petconnect.pet_connect.desc9": "Switch to Release Pets",
+  "tooltip.petconnect.pet_connect": "§6Right-click to contain pets within §r%.1f§6 blocks",
+  "tooltip.petconnect.pet_connect1": "§6Currently, there are §r%d§6 pets in the pet space, with a maximum of §r%d§6 pets that can be contained",
+  "tooltip.petconnect.pet_connect2": "§6Right-click to release all pets in the pet space",
+  "tooltip.petconnect.pet_connect3": "§6Toggle Key: "
+}

@@ -6,10 +6,9 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -19,6 +18,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -28,28 +28,37 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.*;
 
-import static com.wolf.petconnect.PetConnectEventHandler.havePetsNumber;
+import static com.wolf.petconnect.PetConnect.ClientInit.EXAMPLE_MAPPING;
+
 
 @Mod(PetConnect.MODID)
 public class PetConnect {
     public static final String MODID = "petconnect";
+    private static final Random random = new Random();
+    private static final List<ItemLike> EXCLUDED_ITEMS = List.of(
+            Items.AIR, Items.BARRIER, Items.COMMAND_BLOCK,
+            Items.STRUCTURE_BLOCK, Items.JIGSAW, Items.DEBUG_STICK
+    );
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, PetConnect.MODID);
-    public static final Lazy<KeyMapping> EXAMPLE_MAPPING = Lazy.of(() -> new KeyMapping(
-            "key.petconnect.toggle", // 名称
-            GLFW.GLFW_KEY_B,         // 默认键位 (小写 'b')
-            "key.categories.misc"
-    ));
-
     public PetConnect() {
+        ModMessages.register();
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         PetConnect.ITEMS.register(eventBus);
         PetConnect.CREATIVE_MODE_TABS.register(eventBus);
-        KeyMapping.set(EXAMPLE_MAPPING.get().getKey(), true);
         MinecraftForge.EVENT_BUS.register(new PetConnectEventHandler());
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigCommon.COMMON);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+
+    }
+    private void setup(final FMLClientSetupEvent event) {
+        // 在setup阶段执行的代码
         Minecraft.getInstance().options.keyMappings = ArrayUtils.add(Minecraft.getInstance().options.keyMappings, EXAMPLE_MAPPING.get());
+        RecipeManager recipeManager = Objects.requireNonNull(Minecraft.getInstance().getConnection()).getRecipeManager();
+        List<Recipe<?>> allRecipes = recipeManager.getRecipes().stream()
+                .filter(r -> r.getType() == RecipeType.CRAFTING)
+                .toList();
     }
     public static final RegistryObject<Item> PET_CONNECT = ITEMS.register("pet_connect", () -> new Item(new Item.Properties().stacksTo(1)) {
         @Override
@@ -62,7 +71,7 @@ public class PetConnect {
             else {
                 tooltip.add(Component.translatable("tooltip.petconnect.pet_connect1", 0, ConfigCommon.LIMIT_PETS_NUMBER.get()));
             }
-            tooltip.add(Component.translatable("tooltip.petconnect.pet_connect3").append(EXAMPLE_MAPPING.get().getKey().getDisplayName()));
+            tooltip.add(Component.translatable("tooltip.petconnect.pet_connect3").append(ClientInit.EXAMPLE_MAPPING.get().getKey().getDisplayName()));
         }
         @Override
         public @NotNull Component getName(@NotNull ItemStack stack){
@@ -80,7 +89,7 @@ public class PetConnect {
             else {
                 tooltip.add(Component.translatable("tooltip.petconnect.pet_connect1", 0, ConfigCommon.LIMIT_PETS_NUMBER.get()));
             }
-            tooltip.add(Component.translatable("tooltip.petconnect.pet_connect3").append(EXAMPLE_MAPPING.get().getKey().getDisplayName()));
+            tooltip.add(Component.translatable("tooltip.petconnect.pet_connect3").append(ClientInit.EXAMPLE_MAPPING.get().getKey().getDisplayName()));
         }
         @Override
         public @NotNull Component getName(@NotNull ItemStack stack){
@@ -98,6 +107,17 @@ public class PetConnect {
                         pOutput.accept(PetConnect.PET_CONNECT.get());
                     })
                     .build());
+    public static class ClientInit {
+        public static final Lazy<KeyMapping> EXAMPLE_MAPPING = Lazy.of(() -> new KeyMapping(
+                "key.petconnect.toggle",
+                GLFW.GLFW_KEY_B,
+                "key.categories.misc"
+        ));
 
-
+        public static void init() {
+            // 添加键映射到 Minecraft 实例
+            var options = Minecraft.getInstance().options;
+            options.keyMappings = ArrayUtils.add(options.keyMappings, EXAMPLE_MAPPING.get());
+        }
+    }
 }

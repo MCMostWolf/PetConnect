@@ -3,6 +3,7 @@ package com.wolf.petconnect;
 import com.mojang.brigadier.CommandDispatcher;
 import com.wolf.petconnect.config.ConfigCommon;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -20,6 +21,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -35,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.wolf.petconnect.PetConnect.*;
+import static com.wolf.petconnect.PetConnect.ClientInit.EXAMPLE_MAPPING;
 
 @Mod.EventBusSubscriber(modid = PetConnect.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class PetConnectEventHandler {
@@ -181,19 +185,21 @@ public class PetConnectEventHandler {
             event.setCanceled(true);
         }
     }
+
     @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
     public static void onClientTick(TickEvent.PlayerTickEvent event) {
-            if (EXAMPLE_MAPPING.get().consumeClick()) {
-                Player player = event.player;
-                if (player instanceof ServerPlayer serverPlayer && player.getMainHandItem().is(PET_CONNECT.get())) {
-                    player.displayClientMessage(Component.translatable("item.petconnect.pet_connect.desc9").withStyle(ChatFormatting.GOLD), true);
-                    serverPlayer.getSlot(player.getInventory().selected).set(new ItemStack(PET_CONNECT1.get()));
-                }
-                else if (player instanceof ServerPlayer serverPlayer && player.getMainHandItem().is(PET_CONNECT1.get())) {
-                    player.displayClientMessage(Component.translatable("item.petconnect.pet_connect.desc8").withStyle(ChatFormatting.GOLD), true);
-                    serverPlayer.getSlot(player.getInventory().selected).set(new ItemStack(PET_CONNECT.get()));
-                }
+
+        if (EXAMPLE_MAPPING.get().consumeClick()) {
+            Player player = event.player;
+            if (player.getMainHandItem().is(PET_CONNECT.get())) {
+                player.displayClientMessage(Component.translatable("item.petconnect.pet_connect.desc9").withStyle(ChatFormatting.GOLD), true);
+                ModMessages.INSTANCE.sendToServer(new PetConnectMessage(player.getInventory().selected, new ItemStack(PET_CONNECT1.get())));
+            } else if (player.getMainHandItem().is(PET_CONNECT1.get())) {
+                player.displayClientMessage(Component.translatable("item.petconnect.pet_connect.desc8").withStyle(ChatFormatting.GOLD), true);
+                ModMessages.INSTANCE.sendToServer(new PetConnectMessage(player.getInventory().selected, new ItemStack(PET_CONNECT.get())));
             }
+        }
     }
     @SubscribeEvent
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -202,7 +208,9 @@ public class PetConnectEventHandler {
         serverLevel.getChunkSource().addRegionTicket(TicketType.FORCED, chunkPos, 0, chunkPos);
     }
     @SubscribeEvent
-    public void registerBindings(RegisterKeyMappingsEvent event) {
-        event.register(EXAMPLE_MAPPING.get());
+    @OnlyIn(Dist.CLIENT)
+    public static void registerBindings(RegisterKeyMappingsEvent event) {
+            event.register(EXAMPLE_MAPPING.get());
     }
+
 }

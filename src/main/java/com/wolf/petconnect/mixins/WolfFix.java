@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class WolfFix {
      @Redirect(method = "setTame", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/Wolf;setHealth(F)V"))
      private void redirectSetHealth(Wolf instance, float health) {
-         // 使用类型转换来调用原始方法
          ((Wolf)(Object)this).setHealth(instance.getHealth());
      }
 }
